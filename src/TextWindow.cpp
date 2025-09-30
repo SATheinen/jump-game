@@ -4,8 +4,8 @@
 #include "TextWindow.h"
 
 TextWindow::TextWindow(SDL_Renderer* renderer, const std::string& text,
-                        const std::string& fontPath, int fontSize, int x, int y)
-    : renderer(renderer), text(text), x(x), y(y)
+                        const std::string& fontPath, int fontSize, int x, int y, bool center)
+    : renderer(renderer), text(text), x(x), y(y), center(center)
 {
     // Create font
     font = TTF_OpenFont(fontPath.c_str(), fontSize);
@@ -24,7 +24,6 @@ TextWindow::~TextWindow() {
 void TextWindow::updateTexture() {
     if (texture) SDL_DestroyTexture(texture);
 
-    // r g b alpha
     SDL_Color color = {0, 0, 0, 192};
     SDL_Surface* surface = TTF_RenderText_Solid(font, text.c_str(), color);
     if (!surface) {
@@ -35,9 +34,27 @@ void TextWindow::updateTexture() {
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 
-    dstRect.x = x;
-    dstRect.y = y;
-    SDL_QueryTexture(texture, nullptr, nullptr, &dstRect.w, &dstRect.h);
+    // Get text size
+    int textW = 0, textH = 0;
+    TTF_SizeText(font, text.c_str(), &textW, &textH);
+
+    // Get screen size
+    int screenW = 0, screenH = 0;
+    SDL_GetRendererOutputSize(renderer, &screenW, &screenH);
+
+    // Center the text
+    dstRect.w = textW;
+    dstRect.h = textH;
+    dstRect.x = (screenW - textW) / 2;
+    dstRect.y = (screenH - textH) / 2;
+
+    if (center) {
+        dstRect.x = (screenW - textW) / 2;
+        dstRect.y = (screenH - textH) / 2;
+    } else {
+        dstRect.x = x;
+        dstRect.y = y;
+    }
 }
 
 void TextWindow::setText(const std::string& newText) {

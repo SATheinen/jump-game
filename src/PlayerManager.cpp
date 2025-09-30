@@ -132,6 +132,12 @@ float PlayerManager::scrollCamera(float camera_offset_y) {
     return camera_offset_y;
 };
 
+bool PlayerManager::isGameOver(float camera_offset_y) {
+    if (player.y > SCREEN_HEIGHT + static_cast<int>(camera_offset_y))
+        gameOverFlag = true;
+    return gameOverFlag;
+}
+
 void PlayerManager::render(SDL_Renderer* renderer, float camera_offset_y) {
     // draw player
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);

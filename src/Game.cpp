@@ -64,7 +64,7 @@ bool Game::init() {
 
     // Create Score and Game Over textboxes
     scoreText = std::make_unique<TextWindow>(renderer, "Score: 0", "assets/arial.ttf", 40, 50, 0);
-    gameOverText = std::make_unique<TextWindow>(renderer, "Game Over!", "assets/arial.ttf", 64, 200, 250);
+    gameOverText = std::make_unique<TextWindow>(renderer, "Game Over!", "assets/arial.ttf", 100, 0, 0, true);
 
     // create initial platforms
     for (const auto& p : initial_platforms) {
@@ -99,6 +99,10 @@ void Game::update() {
 
     updateScore(camera_offset_y);
     scoreText->setText("Score: " + std::to_string(score));
+
+    if (playerManager.isGameOver(camera_offset_y)) {
+        gameOverText->setText("Game Over!");
+    }
 }
 
 // Render Game Objects
@@ -112,6 +116,10 @@ void Game::render() {
     scoreText->render();
     platformManager.render(renderer, camera_offset_y);
     playerManager.render(renderer, camera_offset_y);
+
+    if (playerManager.isGameOver(camera_offset_y)) {
+        gameOverText->render();
+    }
 
     SDL_RenderPresent(renderer);
 }

@@ -78,7 +78,7 @@ bool Game::init() {
 
 // score function
 void Game::updateScore(float camera_offset_y) {
-    score = static_cast<int>(-camera_offset_y);
+    score = static_cast<int>(-camera_offset_y * 100 / SCREEN_HEIGHT);
 }
 
 // loop

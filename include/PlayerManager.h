@@ -1,7 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "PlatformManager.h"   // for platform collisions
-#include </opt/homebrew/include/SDL2/SDL.h>
+#include <SDL.h>
 
 class PlayerManager {
 public:

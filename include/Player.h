@@ -1,6 +1,6 @@
 #pragma once
 #include "Config.h"
-#include </opt/homebrew/include/SDL2/SDL.h>
+#include <SDL.h>
 
 // Player properties
 struct Player {

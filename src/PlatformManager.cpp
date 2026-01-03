@@ -33,7 +33,7 @@ void PlatformManager::addScrollPlatforms(int numPlatforms, float camera_offset_y
         SCREEN_HEIGHT - SCROLL_TRIGGER_Y - 650.0f);
     std::uniform_real_distribution<float> width_dist(100.0f, 120.0f);
     std::uniform_real_distribution<float> height_dist(10.0f, 20.0f);
-    std::uniform_real_distribution<float> velocityX_dist(-2.0f, 2.0f);
+    std::uniform_real_distribution<float> velocityX_dist(-PLATFORM_MAX_SPEED, PLATFORM_MAX_SPEED);
 
     for (int i = 0; i < numPlatforms; i++){
         float x = x_dist(gen);
@@ -65,10 +65,10 @@ void PlatformManager::clearAllPlatforms() {
 // move platforms
 void PlatformManager::updatePlatformVelocity() {
     for (auto& platform : platforms) {
-        platform.x += platform.velocityX;
+        platform.x += static_cast<int>(platform.velocityX);
 
         if (platform.x <= 0 || platform.x + platform.width >= SCREEN_WIDTH) {
-            platform.velocityX = -platform.velocityX;
+            platform.velocityX = -static_cast<int>(platform.velocityX);
         }
     }
 }

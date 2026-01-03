@@ -15,7 +15,7 @@ void PlayerManager::playerPhysics(PlatformManager& platformManager) {
 
     // update y position
     player.velocityY += GRAVITY;
-    player.y += player.velocityY;
+    player.y += static_cast<int>(player.velocityY);
 
     // cap movement speed
     if (player.velocityX > MAX_MOVESPEED) {
@@ -28,7 +28,7 @@ void PlayerManager::playerPhysics(PlatformManager& platformManager) {
     }
 
     // update player position
-    player.x += player.velocityX;
+    player.x += static_cast<int>(player.velocityX);
     player.onGround = false; 
     
     // Player Platform interactions
@@ -105,7 +105,6 @@ void PlayerManager::playerPhysics(PlatformManager& platformManager) {
       }  
 }
 
-// Function declaration
 void PlayerManager::handleInput(SDL_Event& event, bool& running) {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) running = false;

@@ -1,4 +1,4 @@
-#include </opt/homebrew/include/SDL2/SDL.h>
+#include <SDL.h>
 #include <iostream>
 #include <SDL_ttf.h>
 #include "Game.h"

@@ -14,8 +14,9 @@ private:
     std::vector<Platform> platforms;
 public:
     void createInitialPlatforms();
+    std::vector<Platform> getPlatforms();
     int getPlatformCount();
-    const std::vector<Platform>& getPlatforms() const;
+    const std::vector<Platform> getPlatforms() const;
     void addPlatform(int x, int y, int width, int height, int velocityX, bool isWall);
     void addScrollPlatforms(int numPlatforms, float camera_offset_y);
     void removeOffscreenPlatform(float camera_offset_y);

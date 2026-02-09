@@ -11,14 +11,18 @@ Platform::Platform()
 Platform::Platform(int x, int y, int width, int height, int velocityX, bool isWall)
     : x(x), y(y), width(width), height(height), velocityX(velocityX), isWall(isWall) {}
 
+std::vector<Platform> PlatformManager::getPlatforms() {
+    return platforms;
+}
+
+const std::vector<Platform> PlatformManager::getPlatforms() const {
+    return platforms;
+}
+
 // PlatformManager definitions
 int PlatformManager::getPlatformCount() {
     return static_cast<int>(platforms.size());
 }
-
-const std::vector<Platform>& PlatformManager::getPlatforms() const {
-    return platforms;
-};
 
 void PlatformManager::addPlatform(int x, int y, int width, int height, int velocityX, bool isWall) {
     platforms.emplace_back(x, y, width, height, velocityX, isWall);
@@ -97,6 +101,8 @@ void PlatformManager::render(SDL_Renderer* renderer, float camera_offset_y) {
 }
 
 void PlatformManager::createInitialPlatforms() {
+    clearAllPlatforms();
+
     // define initial platforms
     std::vector<Platform> initial_platforms = {
         {0, SCREEN_HEIGHT -50, SCREEN_WIDTH, 20, 0, false}, // Ground

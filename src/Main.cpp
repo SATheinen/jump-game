@@ -8,7 +8,7 @@
 
 // Main function
 int main() {
-    Game game;
+    Game game(false);
     if (!game.init()) return -1;
     game.run();
     game.clean();

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-Game::Game() {}
+Game::Game(bool headless) : headless(headless) {}
 
 Game::~Game() {
     clean();
@@ -74,20 +74,76 @@ void Game::updateScore(float camera_offset_y) {
     score = static_cast<int>(-camera_offset_y * 100 / SCREEN_HEIGHT);
 }
 
+GameState Game::getState() const {
+    GameState state;
+    
+    // 1. Player data extrahieren
+    const Player& p = playerManager.getPlayer();
+    state.player_x = static_cast<float>(p.x);
+    state.player_y = static_cast<float>(p.y);
+    state.player_vx = static_cast<float>(p.velocityX);
+    state.player_vy = static_cast<float>(p.velocityY);
+    state.player_on_ground = p.onGround;
+    
+    // 2. Platform data extrahieren
+    const std::vector<Platform>& platforms = platformManager.getPlatforms();
+    
+    // Fülle die ersten 7 Platforms (oder weniger, wenn weniger existieren)
+    for (int i = 0; i < NUM_PLATFORMS; i++) {
+        if (i < platforms.size()) {
+            state.platforms[i][0] = static_cast<float>(platforms[i].x);
+            state.platforms[i][1] = static_cast<float>(platforms[i].y);
+            state.platforms[i][2] = static_cast<float>(platforms[i].width);
+            state.platforms[i][3] = static_cast<float>(platforms[i].height);
+            state.platforms[i][4] = static_cast<float>(platforms[i].velocityX);
+            state.platforms[i][5] = static_cast<float>(platforms[i].isWall);
+        } else {
+            // Falls weniger als 7 Platforms: Mit 0en füllen
+            state.platforms[i][0] = 0.0f;
+            state.platforms[i][1] = 0.0f;
+            state.platforms[i][2] = 0.0f;
+            state.platforms[i][3] = 0.0f;
+            state.platforms[i][4] = 0.0f;
+            state.platforms[i][5] = 0.0f;
+        }
+    }
+    
+    // 3. Score
+    state.score = score;
+    
+    return state;
+}
+
 // loop
 void Game::run() {
     SDL_Event event;
     while (running) {
-        if (playerManager.gameOverFlag == true) {
-            reset();
-        }
-        playerManager.handleInput(event, running);
+        playerManager.handleInput(event, running, inputState);
+        playerManager.updatePlayer(inputState);
         update();
-        if (!headless) {
-            render();
-        }
+        render();
         SDL_Delay(16);
     }
+}
+
+GameState Game::step(bool left, bool right, bool jump, int num_frames) {
+
+    inputState.left = left;
+    inputState.right = right;
+    inputState.jump = jump;
+
+    float deltaTime = 0.016f;
+
+    for (int i = 0; i < num_frames; i++) {
+        playerManager.updatePlayer(inputState);
+        update();
+
+        if (playerManager.isGameOver(camera_offset_y)) {
+            break;
+        }
+    }
+
+    return getState();
 }
 
 void Game::update() {
@@ -96,10 +152,11 @@ void Game::update() {
     platformManager.updatePlatformVelocity();
 
     updateScore(camera_offset_y);
-    scoreText->setText("Score: " + std::to_string(score));
-
-    if (playerManager.isGameOver(camera_offset_y)) {
-        gameOverText->setText("Game Over!");
+    if (!headless) {
+        scoreText->setText("Score: " + std::to_string(score));
+        if (playerManager.isGameOver(camera_offset_y)) {
+            gameOverText->setText("Game Over!");
+        }
     }
 }
 
@@ -123,11 +180,11 @@ void Game::render() {
 }
 
 void Game::reset() {
-    bool running = true;
-    int score = 0;
+    running = true;
+    score = 0;
     
     // track camera movement
-    float camera_offset_y = 0.0f;
+    camera_offset_y = 0.0f;
 
     playerManager.reset();
     platformManager.reset();

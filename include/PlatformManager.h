@@ -13,6 +13,7 @@ class PlatformManager {
 private:
     std::vector<Platform> platforms;
 public:
+    void createInitialPlatforms();
     int getPlatformCount();
     const std::vector<Platform>& getPlatforms() const;
     void addPlatform(int x, int y, int width, int height, int velocityX, bool isWall);
@@ -23,5 +24,6 @@ public:
     void updatePlatformVelocity();
     // Create new platforms
     void updatePlatforms(float camera_offset_y);
+    void reset();
     void render(SDL_Renderer* renderer, float camera_offset_y);
 };

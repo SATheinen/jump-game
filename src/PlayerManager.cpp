@@ -149,3 +149,9 @@ void PlayerManager::render(SDL_Renderer* renderer, float camera_offset_y) {
     };
     SDL_RenderFillRect(renderer, &playerRect);
 };
+
+void PlayerManager::reset() {
+    player.reset();
+    gameOverFlag = false;
+    std::cout << "reset" << std::endl;
+}

@@ -95,3 +95,26 @@ void PlatformManager::render(SDL_Renderer* renderer, float camera_offset_y) {
         SDL_RenderFillRect(renderer, &rect);
     }
 }
+
+void PlatformManager::createInitialPlatforms() {
+    // define initial platforms
+    std::vector<Platform> initial_platforms = {
+        {0, SCREEN_HEIGHT -50, SCREEN_WIDTH, 20, 0, false}, // Ground
+        //{0, SCREEN_HEIGHT -400 -50 +20, 20, 400, 0, true}, // Left Wall
+        //{SCREEN_WIDTH -20, SCREEN_HEIGHT -400 -50 +20, 20, 400, 0, true}, // Right Wall
+        {200, SCREEN_HEIGHT -300, 200, 20, 2, false}, // Floating Platform
+        {500, SCREEN_HEIGHT -450, 200, 20, -3, false}, // Floating Platform
+        {500, SCREEN_HEIGHT -600, 150, 20, -5, false},  // Floating Platform
+        {200, SCREEN_HEIGHT -750, 150, 20, -5, false},  // Floating Platform
+        {300, SCREEN_HEIGHT -900, 150, 20, -5, false}  // Floating Platform
+    };
+
+    // create initial platforms
+    for (const auto& p : initial_platforms) {
+        addPlatform(p.x, p.y, p.width, p.height, p.velocityX, p.isWall);
+    }
+}
+
+void PlatformManager::reset() {
+    createInitialPlatforms();
+}

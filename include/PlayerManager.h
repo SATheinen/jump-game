@@ -13,8 +13,9 @@ public:
     float scrollCamera(float camera_offset_y);
     bool isGameOver(float camera_offset_y);
     void render(SDL_Renderer* renderer, float camera_offset_y);
+    void reset(); // reset player und gameOverFlag
 
+    bool gameOverFlag = false;
 private:
     Player player;
-    bool gameOverFlag = false;
 };

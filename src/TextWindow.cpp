@@ -67,3 +67,7 @@ void TextWindow::render() const {
         SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
     }
 }
+
+void TextWindow::resetGameOver() {
+    
+}

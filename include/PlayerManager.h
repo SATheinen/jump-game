@@ -14,7 +14,7 @@ public:
     void handleInput(SDL_Event& event, bool& running, InputState& input);
     void updatePlayer(InputState& input);
     float scrollCamera(float camera_offset_y);
-    bool isGameOver(float camera_offset_y);
+    bool isGameOver(float camera_offset_y) const;
     void render(SDL_Renderer* renderer, float camera_offset_y);
     void reset(); // reset player und gameOverFlag
 

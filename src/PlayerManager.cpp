@@ -152,16 +152,16 @@ float PlayerManager::scrollCamera(float camera_offset_y) {
     if (player.y - camera_offset_y < SCROLL_TRIGGER_Y) {
        camera_offset_y = player.y - SCROLL_TRIGGER_Y;
     }
-    else {
-        camera_offset_y = camera_offset_y;
-    }
     return camera_offset_y;
 };
 
-bool PlayerManager::isGameOver(float camera_offset_y) {
-    if (player.y > SCREEN_HEIGHT + static_cast<int>(camera_offset_y))
-        gameOverFlag = true;
-    return gameOverFlag;
+bool PlayerManager::isGameOver(float camera_offset_y) const {
+    if (player.y > SCREEN_HEIGHT + static_cast<int>(camera_offset_y)) {
+        return true;
+    } 
+    else {
+        return false;
+    }
 }
 
 void PlayerManager::render(SDL_Renderer* renderer, float camera_offset_y) {

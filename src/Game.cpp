@@ -88,28 +88,25 @@ GameState Game::getState() const {
     // 2. Platform data extrahieren
     const std::vector<Platform>& platforms = platformManager.getPlatforms();
     
-    // Fülle die ersten 7 Platforms (oder weniger, wenn weniger existieren)
     for (int i = 0; i < NUM_PLATFORMS; i++) {
-        if (i < platforms.size()) {
+        if (i < platformManager.getPlatformCount()) {
             state.platforms[i][0] = static_cast<float>(platforms[i].x);
             state.platforms[i][1] = static_cast<float>(platforms[i].y);
             state.platforms[i][2] = static_cast<float>(platforms[i].width);
-            state.platforms[i][3] = static_cast<float>(platforms[i].height);
-            state.platforms[i][4] = static_cast<float>(platforms[i].velocityX);
-            state.platforms[i][5] = static_cast<float>(platforms[i].isWall);
+            state.platforms[i][3] = static_cast<float>(platforms[i].velocityX);
         } else {
             // Falls weniger als 7 Platforms: Mit 0en füllen
             state.platforms[i][0] = 0.0f;
             state.platforms[i][1] = 0.0f;
             state.platforms[i][2] = 0.0f;
             state.platforms[i][3] = 0.0f;
-            state.platforms[i][4] = 0.0f;
-            state.platforms[i][5] = 0.0f;
         }
     }
     
     // 3. Score
     state.score = score;
+
+    state.done = playerManager.isGameOver(camera_offset_y);
     
     return state;
 }
@@ -132,7 +129,7 @@ GameState Game::step(bool left, bool right, bool jump, int num_frames) {
     inputState.right = right;
     inputState.jump = jump;
 
-    float deltaTime = 0.016f;
+    //float deltaTime = 0.016f;
 
     for (int i = 0; i < num_frames; i++) {
         playerManager.updatePlayer(inputState);

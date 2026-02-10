@@ -2,7 +2,7 @@
 #include "Player.h"
 #include "PlatformManager.h"
 #include "PlayerManager.h"
-#include "textWindow.h"
+#include "TextWindow.h"
 #include "InputState.h"
 #include "GameState.h"
 #include "Config.h"

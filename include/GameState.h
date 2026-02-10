@@ -10,8 +10,9 @@ struct GameState {
     bool player_on_ground;
     
     // Platform state
-    float platforms[NUM_PLATFORMS][6];  // [x, y, width, height, velocityX, isWall]
+    float platforms[NUM_PLATFORMS][4];  // [x, y, width, velocityX]
     
     // Meta information
+    bool done;
     int score;
 };

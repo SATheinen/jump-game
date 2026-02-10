@@ -11,16 +11,16 @@ Platform::Platform()
 Platform::Platform(int x, int y, int width, int height, int velocityX, bool isWall)
     : x(x), y(y), width(width), height(height), velocityX(velocityX), isWall(isWall) {}
 
-std::vector<Platform> PlatformManager::getPlatforms() {
+std::vector<Platform>& PlatformManager::getPlatforms() {
     return platforms;
 }
-
-const std::vector<Platform> PlatformManager::getPlatforms() const {
+    
+const std::vector<Platform>& PlatformManager::getPlatforms() const {
     return platforms;
 }
 
 // PlatformManager definitions
-int PlatformManager::getPlatformCount() {
+int PlatformManager::getPlatformCount() const {
     return static_cast<int>(platforms.size());
 }
 

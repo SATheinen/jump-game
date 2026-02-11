@@ -1,15 +1,17 @@
 # 🎮 Jump Game
 
 A vertical platformer built in pure C++ and SDL2 - my sandbox for learning game design and C++ development.
+Furthermore I integrated a simple Reinforcement Learning algotithm, that is able to play the game (The gif below is a gameplay of this agent).
 
 ![RLAgent_JumpGame_trimmed](https://github.com/user-attachments/assets/fbf7c91a-1b30-42cf-bbba-cc7fbee26629)
-![Gameplay Screenshot](./images/Screenshot.png)
 
 ---
 
 ## 🚀 Why I Built This
 
 This project is my playground for exploring game development from scratch. No game engines, no frameworks - just C++, SDL2, and a curiosity about how games work. It's not meant to be a polished product; it's a **learning sandbox** where I experiment with game physics, interactive simulations, and the challenge of making controls feel *right*.
+
+Also I use this project to test out Reinforcement Leraning integration into games.
 
 ---
 
@@ -24,6 +26,7 @@ A simple vertical jumping game where you control a block trying to reach as high
 - Moving platforms with collision detection
 - Score tracking system
 - Interactive gameplay loop
+- RL agent
 
 ---
 
@@ -34,6 +37,7 @@ A simple vertical jumping game where you control a block trying to reach as high
 You'll need:
 - C++ compiler (g++)
 - SDL2 library installed
+- Python (If you wan to use the RL agent)
 
 ### Installation
 
@@ -47,7 +51,7 @@ brew install sdl2
 sudo apt-get install libsdl2-dev
 ```
 
-### Setup & Compilation
+### Game Setup & Compilation
 
 1. Clone this repository:
 ```bash
@@ -66,6 +70,37 @@ bash compile.sh
 ```
 
 The script will compile the game and automatically launch it.
+
+4. Setup python environment for RL agent
+```bash
+python3 -m venv rllib_env
+source venv/bin/activate
+```
+
+5. Create c++ bindings for python
+```bash
+cd python
+python setup.py build_ext --inplace
+```
+
+6. Train agent and visualize results
+```
+python train_rllib.py
+```
+After training the agent, we may use the model to watch our agent play the game.
+When the model is finished training, the Terminal will output you the path where the model is saved.
+Scroll a bit up and you will find something like:
+```bash
+Final checkpoint saved to: TrainingResult(checkpoint=Checkpoint(filesystem=local, path=/var/folders/31/lhm9rkfd5mq5nqs778m806v40000gn/T/tmp0448ak19)
+```
+Now open the visualize_trained_agent.py file and set:
+```python
+checkpoint = /var/folders/31/lhm9rkfd5mq5nqs778m806v40000gn/T/tmp0448ak19
+```
+Finally run the script and see the agent playing the game!
+```python
+python visualize_trained_agent.py
+```
 
 ---
 

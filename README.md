@@ -2,6 +2,7 @@
 
 A vertical platformer built in pure C++ and SDL2 - my sandbox for learning game design and C++ development.
 
+![RLAgent_JumpGame_trimmed](https://github.com/user-attachments/assets/fbf7c91a-1b30-42cf-bbba-cc7fbee26629)
 ![Gameplay Screenshot](./images/Screenshot.png)
 
 ---
@@ -13,6 +14,7 @@ This project is my playground for exploring game development from scratch. No ga
 ---
 
 ## 🎯 What It Is
+
 
 A simple vertical jumping game where you control a block trying to reach as high as possible by bouncing on moving platforms. Jump too early or too late, and you'll fall. The challenge is timing your jumps and positioning yourself while the platforms keep moving.
 

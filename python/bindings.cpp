@@ -18,8 +18,8 @@ PYBIND11_MODULE(jumpgame, m) {
         
         .def("clean", &Game::clean)
 
-        .def("runAgentVisualization", [](Game& self, bool left, bool right, bool jump) {})
-
+        .def("runAgentVisualization", &Game::runAgentVisualization)
+        
         .def("getState", [](Game& self) {
             GameState gs = self.getState();
 

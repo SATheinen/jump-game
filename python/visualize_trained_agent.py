@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 register_env("jump_game", lambda config: JumpGameEnv(config))
 
-checkpoint = "/var/folders/31/lhm9rkfd5mq5nqs778m806v40000gn/T/tmph5cfdkml"
+checkpoint = "/var/folders/31/lhm9rkfd5mq5nqs778m806v40000gn/T/tmpvse021r6"
 agent = PPO.from_checkpoint(checkpoint)
 
 rl_module = agent.get_module()
@@ -37,7 +37,7 @@ num_steps = 2000
 for step in range(num_steps):
     state = game.getState()
 
-    obs_batch = torch.Tensor(state)
+    obs_batch = torch.Tensor(state).unsqueeze(0)
 
     output = rl_module.forward_inference({"obs": obs_batch})
 
@@ -50,6 +50,11 @@ for step in range(num_steps):
 
     done = state[34] > 0.5
 
+    # DEBUG: Was macht der Agent?
+    if step % 10 == 0:  # Jede 10 frames
+        action_name = ["Nothing", "Left", "Right", "Jump", "Left+Jump", "Right+Jump"][int(action)]
+        print(f"Step {step}: Action={action_name}, left={left}, right={right}, jump={jump}")
+    
     if done == True:
         print("Player Died")
         break

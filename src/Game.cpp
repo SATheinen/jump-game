@@ -142,6 +142,13 @@ GameState Game::step(bool left, bool right, bool jump, int num_frames) {
 
 void Game::runAgentVisualization(bool left, bool right, bool jump) {
     SDL_Event event;
+
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            running = false;  // Ermöglicht Fenster schließen
+        }
+    }
+
     inputState.left = left;
     inputState.right = right;
     inputState.jump = jump;

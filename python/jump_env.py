@@ -8,7 +8,7 @@ class JumpGameEnv(gym.Env):
         super().__init__()
         
         self.game = jumpgame.Game(headless=True)
-        self.game.init(headless=True)
+        self.game.init()
         
         self.action_space = spaces.Discrete(6)
         
@@ -22,28 +22,23 @@ class JumpGameEnv(gym.Env):
         self.max_steps = 2000
         self.step_count = 0
         self.last_state = None
-    
+        self.last_platform_y = float(0)
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         self.game.reset()
-        
         state = self.game.step(False, False, False, 1)
+    
         self.step_count = 0
         self.last_state = state.copy()
-        
+        self.last_platform_y = float(0)
         return state, {}
     
     def step(self, action):
         left, right, jump = self.action_to_input(action)
-        
-        # Execute in game
         new_state = self.game.step(left, right, jump, 4)
-        
-        # Calculate reward
         reward = self._calculate_reward(self.last_state, new_state)
-        
-        # Get done from C++ (index 34!)
-        done = bool(new_state[34] > 0.5)  # NEU: Von C++ lesen!
+        done = bool(new_state[34] > 0.5)
         
         # Truncation (max steps)
         truncated = False
@@ -108,27 +103,41 @@ class JumpGameEnv(gym.Env):
 
     def _calculate_reward(self, old_state, new_state):
         reward = 0.0
+        
+        # Base survival
+        reward += 1.0
 
-        # Survival
-        reward += 1
+        height_gain = 0
+        height_loss = 0
 
-        # Height gain
-        height_gain = old_state[1] - new_state[1]
-        if height_gain > 0:
-            reward += height_gain * 0.01
+        # Jump gain
+        if old_state[4] == 1 and new_state[4] == 0:
+            reward += 1.0
+        
+        # Landing on platform
+        if old_state[4] == 0 and new_state[4] == 1:  # Just landed!
+            current_platform_y = new_state[1]  # Player Y = Plattform Y
+            
+            # Vergleiche mit letzter Plattform
+            if current_platform_y < self.last_platform_y:
+                # HÖHER! (negativere Y = höher)
+                reward += 20.0
+            elif current_platform_y > self.last_platform_y:
+                reward -= 5.0
+            
+            # UPDATE: Merke diese Plattform!
+            self.last_platform_y = current_platform_y
+        
+        # Kleine guidance für Bewegung
+        height_change = -(new_state[1] - old_state[1])
+        reward += height_change * 0.05
 
-        # Jump bonus
-        if new_state[3] < -10:
-            reward += 0.5
+        # penalty wenn der score zu langsam steigt
+        reward -= 0.1 * self.step_count / (1.0 + new_state[33])
 
-        # Landing Bonus
-        if new_state[4] == 1.0:
-            reward += 0.2
-
-        # Death Penalty
-        if new_state[1] > 1000:
-            reward -= 50
-
+        if self.step_count % 100 == 0:
+            print(f"Step {self.step_count}: height gain={height_gain:.2f}, height loss={height_loss:.0f}, current platform={self.last_platform_y}")
+        
         return reward
     
     def close(self):

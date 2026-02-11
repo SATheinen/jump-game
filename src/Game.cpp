@@ -71,7 +71,9 @@ bool Game::init() {
 
 // score function
 void Game::updateScore(float camera_offset_y) {
-    score = static_cast<int>(-camera_offset_y * 100 / SCREEN_HEIGHT);
+    if (-playerManager.getPlayer().y * 100 / SCREEN_HEIGHT + 89 > score) {
+        score = static_cast<int>(-playerManager.getPlayer().y * 100 / SCREEN_HEIGHT + 89);
+    }
 }
 
 GameState Game::getState() const {
@@ -95,7 +97,7 @@ GameState Game::getState() const {
             state.platforms[i][2] = static_cast<float>(platforms[i].width);
             state.platforms[i][3] = static_cast<float>(platforms[i].velocityX);
         } else {
-            // Falls weniger als 7 Platforms: Mit 0en füllen
+            // Falls weniger als NUM_PLATFORMS: Mit 0en füllen
             state.platforms[i][0] = 0.0f;
             state.platforms[i][1] = 0.0f;
             state.platforms[i][2] = 0.0f;
@@ -117,6 +119,7 @@ void Game::run() {
     while (running) {
         playerManager.handleInput(event, running, inputState);
         playerManager.updatePlayer(inputState);
+
         update();
         render();
         SDL_Delay(16);
@@ -129,18 +132,24 @@ GameState Game::step(bool left, bool right, bool jump, int num_frames) {
     inputState.right = right;
     inputState.jump = jump;
 
-    //float deltaTime = 0.016f;
-
     for (int i = 0; i < num_frames; i++) {
         playerManager.updatePlayer(inputState);
         update();
-
-        if (playerManager.isGameOver(camera_offset_y)) {
-            break;
-        }
     }
 
     return getState();
+}
+
+void Game::runAgentVisualization(bool left, bool right, bool jump) {
+    SDL_Event event;
+    inputState.left = left;
+    inputState.right = right;
+    inputState.jump = jump;
+
+    playerManager.updatePlayer(inputState);
+    update();
+    render();
+    SDL_Delay(16);
 }
 
 void Game::update() {
@@ -148,7 +157,10 @@ void Game::update() {
     platformManager.updatePlatforms(camera_offset_y);
     platformManager.updatePlatformVelocity();
 
+    // scroll screen
+    camera_offset_y = playerManager.scrollCamera(camera_offset_y);
     updateScore(camera_offset_y);
+
     if (!headless) {
         scoreText->setText("Score: " + std::to_string(score));
         if (playerManager.isGameOver(camera_offset_y)) {
@@ -161,9 +173,6 @@ void Game::update() {
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
     SDL_RenderClear(renderer);
-
-    // scroll screen
-    camera_offset_y = playerManager.scrollCamera(camera_offset_y);
 
     scoreText->render();
     platformManager.render(renderer, camera_offset_y);

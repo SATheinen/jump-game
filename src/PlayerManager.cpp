@@ -136,15 +136,11 @@ void PlayerManager::updatePlayer(InputState& input) {
     else if (input.right && !input.left) {
         player.velocityX = MOVE_SPEED;
     }
-    else {
-        player.velocityX = 0;
-    }
     
     // Jump logic
     if (input.jump && player.onGround) {
         player.velocityY = -JUMP_FORCE;
         player.onGround = false;
-        player.hitGround = true;
     }
 }
 

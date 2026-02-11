@@ -22,6 +22,7 @@ public:
 
     GameState step(bool left, bool right, bool jump, int num_frames = 4);
     GameState getState() const;
+    void runAgentVisualization(bool left, bool right, bool jump);
 
 private:
     void render();

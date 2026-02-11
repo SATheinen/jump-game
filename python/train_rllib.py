@@ -3,6 +3,8 @@ from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.registry import register_env
 from jump_env import JumpGameEnv
 import os
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Suppress GPU warning
 os.environ["RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO"] = "0"
@@ -28,16 +30,16 @@ config = (
     )
     .training(
         train_batch_size=4000,
-        minibatch_size=128,  # GEÄNDERT: vorher sgd_minibatch_size
+        minibatch_size=128,
         num_sgd_iter=10,
         lr=3e-4,
         gamma=0.99,
         lambda_=0.95,
         clip_param=0.2,
-        entropy_coeff=0.01,
+        entropy_coeff=0.1,
     )
     .resources(
-        num_gpus=0,
+        num_gpus=1,
     )
     .debugging(
         log_level="INFO"
@@ -56,25 +58,6 @@ best_reward = float('-inf')
 
 for i in range(num_iterations):
     result = algo.train()
-    
-    # DEBUG: Print structure on first iteration
-    if i == 0:
-        print("\n" + "="*60)
-        print("DEBUG: Result structure")
-        print("="*60)
-        print("Top-level keys:", list(result.keys()))
-        
-        if "env_runners" in result:
-            print("\nenv_runners keys:", list(result["env_runners"].keys()))
-            print("\nenv_runners content:")
-            for key, value in result["env_runners"].items():
-                if isinstance(value, (int, float, bool)):
-                    print(f"  {key}: {value}")
-        
-        if "sampler_results" in result:
-            print("\nsampler_results keys:", list(result["sampler_results"].keys()))
-        
-        print("="*60 + "\n")
     
     # Try different possible locations for metrics
     mean_reward = None
@@ -116,6 +99,7 @@ for i in range(num_iterations):
 
 print("\nTraining complete!")
 print(f"Best mean reward: {best_reward:.2f}")
+print()
 
 # Final save
 final_checkpoint = algo.save()

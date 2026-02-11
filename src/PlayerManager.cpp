@@ -10,6 +10,10 @@ Player& PlayerManager::getPlayer() {
     return player;
 }
 
+const Player& PlayerManager::getPlayer() const {
+    return player;
+}
+
 // Apply Gravity and Handle Collision
 void PlayerManager::playerPhysics(PlatformManager& platformManager) {
 
@@ -105,36 +109,55 @@ void PlayerManager::playerPhysics(PlatformManager& platformManager) {
       }  
 }
 
-void PlayerManager::handleInput(SDL_Event& event, bool& running) {
+void PlayerManager::handleInput(SDL_Event& event, bool& running, InputState& input) {
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) running = false;
+        if (event.type == SDL_QUIT) {
+            running = false;
+        }
+        
         if (event.type == SDL_KEYDOWN) {
-            if (event.key.keysym.sym == SDLK_a) player.velocityX = -MOVE_SPEED;  // Move Left
-            if (event.key.keysym.sym == SDLK_d) player.velocityX = MOVE_SPEED;  // Move Right
-            if (event.key.keysym.sym == SDLK_s) player.velocityX = 0;  // Stop
-            if (event.key.keysym.sym == SDLK_SPACE && player.onGround) {
-                player.velocityY = -JUMP_FORCE;  // Jump
-                player.onGround = false;
-                player.hitGround = true;
-            }
+            if (event.key.keysym.sym == SDLK_a) input.left = true;
+            if (event.key.keysym.sym == SDLK_d) input.right = true;
+            if (event.key.keysym.sym == SDLK_SPACE) input.jump = true;
+        }
+        
+        if (event.type == SDL_KEYUP) {
+            if (event.key.keysym.sym == SDLK_a) input.left = false;
+            if (event.key.keysym.sym == SDLK_d) input.right = false;
+            if (event.key.keysym.sym == SDLK_SPACE) input.jump = false;
         }
     }
-};
+}
+
+void PlayerManager::updatePlayer(InputState& input) {
+    if (input.left && !input.right) {
+        player.velocityX = -MOVE_SPEED;
+    }
+    else if (input.right && !input.left) {
+        player.velocityX = MOVE_SPEED;
+    }
+    
+    // Jump logic
+    if (input.jump && player.onGround) {
+        player.velocityY = -JUMP_FORCE;
+        player.onGround = false;
+    }
+}
 
 float PlayerManager::scrollCamera(float camera_offset_y) {
     if (player.y - camera_offset_y < SCROLL_TRIGGER_Y) {
        camera_offset_y = player.y - SCROLL_TRIGGER_Y;
     }
-    else {
-        camera_offset_y = camera_offset_y;
-    }
     return camera_offset_y;
 };
 
-bool PlayerManager::isGameOver(float camera_offset_y) {
-    if (player.y > SCREEN_HEIGHT + static_cast<int>(camera_offset_y))
-        gameOverFlag = true;
-    return gameOverFlag;
+bool PlayerManager::isGameOver(float camera_offset_y) const {
+    if (player.y > SCREEN_HEIGHT + static_cast<int>(camera_offset_y)) {
+        return true;
+    } 
+    else {
+        return false;
+    }
 }
 
 void PlayerManager::render(SDL_Renderer* renderer, float camera_offset_y) {
@@ -149,3 +172,8 @@ void PlayerManager::render(SDL_Renderer* renderer, float camera_offset_y) {
     };
     SDL_RenderFillRect(renderer, &playerRect);
 };
+
+void PlayerManager::reset() {
+    player.reset();
+    gameOverFlag = false;
+}

@@ -8,29 +8,11 @@
 
 using namespace std;
 
-// track camera movement
-float camera_offset_y = 0.0f;
-int score = 0;
-
-// define initial platforms
-vector<Platform> initial_platforms = {
-    {0, SCREEN_HEIGHT -50, SCREEN_WIDTH, 20, 0, false}, // Ground
-    //{0, SCREEN_HEIGHT -400 -50 +20, 20, 400, 0, true}, // Left Wall
-    //{SCREEN_WIDTH -20, SCREEN_HEIGHT -400 -50 +20, 20, 400, 0, true}, // Right Wall
-    {200, SCREEN_HEIGHT -300, 200, 20, 2, false}, // Floating Platform
-    {500, SCREEN_HEIGHT -450, 200, 20, -3, false}, // Floating Platform
-    {500, SCREEN_HEIGHT -600, 150, 20, -5, false},  // Floating Platform
-    {200, SCREEN_HEIGHT -750, 150, 20, -5, false},  // Floating Platform
-    {300, SCREEN_HEIGHT -900, 150, 20, -5, false}  // Floating Platform
-};
-
-Game::Game() {}
+Game::Game(bool headless) : headless(headless) {}
 
 Game::~Game() {
     clean();
 }
-
-PlayerManager playerManager;   // create player manager
 
 bool Game::init() {
     // Initialize SDL
@@ -38,38 +20,49 @@ bool Game::init() {
         cout << "SDL could not initialize! Error: " << SDL_GetError() << endl;
         return false;
     }
-    window = SDL_CreateWindow("Jump & Run Game",
-                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        cout << "Window could not be created! Error: " << SDL_GetError() << endl;
-        return false;
+
+    if (!headless) {
+        window = SDL_CreateWindow("Jump & Run Game",
+                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        if (!window) {
+            cout << "Window could not be created! Error: " << SDL_GetError() << endl;
+            return false;
+        }
     }
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        cout << "Renderer could not be created! Error: " << SDL_GetError() << endl;
-        return false;
-    }
-    // Initialise TTF
-    if (TTF_Init() == -1) {
-        std::cout << "TTF_Init: " << TTF_GetError() << std::endl;
-        return false;
-    }
-    // Get TTF font
-    TTF_Font* font = TTF_OpenFont("assets/arial.ttf", 200);
-    if (!font) {
-        std::cout << "Failed to load font: " << TTF_GetError() << std::endl;
-        return false;
+    else {
+        window = nullptr;
     }
 
-    // Create Score and Game Over textboxes
-    scoreText = std::make_unique<TextWindow>(renderer, "Score: 0", "assets/arial.ttf", 40, 50, 0);
-    gameOverText = std::make_unique<TextWindow>(renderer, "Game Over!", "assets/arial.ttf", 100, 0, 0, true);
-
-    // create initial platforms
-    for (const auto& p : initial_platforms) {
-        platformManager.addPlatform(p.x, p.y, p.width, p.height, p.velocityX, p.isWall);
+    if (!headless) {
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if (!renderer) {
+            cout << "Renderer could not be created! Error: " << SDL_GetError() << endl;
+            return false;
+        }
+        // Initialise TTF
+        if (TTF_Init() == -1) {
+            std::cout << "TTF_Init: " << TTF_GetError() << std::endl;
+            return false;
+        }
+        // Get TTF font
+        TTF_Font* font = TTF_OpenFont("assets/arial.ttf", 200);
+        if (!font) {
+            std::cout << "Failed to load font: " << TTF_GetError() << std::endl;
+            return false;
+        }
     }
+    else {
+        renderer = nullptr;
+    }
+
+    if (!headless) {
+        // Create Score and Game Over textboxes
+        scoreText = std::make_unique<TextWindow>(renderer, "Score: 0", "assets/arial.ttf", 40, 50, 0);
+        gameOverText = std::make_unique<TextWindow>(renderer, "Game Over!", "assets/arial.ttf", 100, 0, 0, true);
+    }
+
+    platformManager.createInitialPlatforms();
 
     running = true;
 
@@ -78,18 +71,85 @@ bool Game::init() {
 
 // score function
 void Game::updateScore(float camera_offset_y) {
-    score = static_cast<int>(-camera_offset_y * 100 / SCREEN_HEIGHT);
+    if (-playerManager.getPlayer().y * 100 / SCREEN_HEIGHT + 89 > score) {
+        score = static_cast<int>(-playerManager.getPlayer().y * 100 / SCREEN_HEIGHT + 89);
+    }
+}
+
+GameState Game::getState() const {
+    GameState state;
+    
+    // 1. Player data extrahieren
+    const Player& p = playerManager.getPlayer();
+    state.player_x = static_cast<float>(p.x);
+    state.player_y = static_cast<float>(p.y);
+    state.player_vx = static_cast<float>(p.velocityX);
+    state.player_vy = static_cast<float>(p.velocityY);
+    state.player_on_ground = p.onGround;
+    
+    // 2. Platform data extrahieren
+    const std::vector<Platform>& platforms = platformManager.getPlatforms();
+    
+    for (int i = 0; i < NUM_PLATFORMS; i++) {
+        if (i < platformManager.getPlatformCount()) {
+            state.platforms[i][0] = static_cast<float>(platforms[i].x);
+            state.platforms[i][1] = static_cast<float>(platforms[i].y);
+            state.platforms[i][2] = static_cast<float>(platforms[i].width);
+            state.platforms[i][3] = static_cast<float>(platforms[i].velocityX);
+        } else {
+            // Falls weniger als NUM_PLATFORMS: Mit 0en füllen
+            state.platforms[i][0] = 0.0f;
+            state.platforms[i][1] = 0.0f;
+            state.platforms[i][2] = 0.0f;
+            state.platforms[i][3] = 0.0f;
+        }
+    }
+    
+    // 3. Score
+    state.score = score;
+
+    state.done = playerManager.isGameOver(camera_offset_y);
+    
+    return state;
 }
 
 // loop
 void Game::run() {
     SDL_Event event;
     while (running) {
-        playerManager.handleInput(event, running);
+        playerManager.handleInput(event, running, inputState);
+        playerManager.updatePlayer(inputState);
+
         update();
         render();
         SDL_Delay(16);
     }
+}
+
+GameState Game::step(bool left, bool right, bool jump, int num_frames) {
+
+    inputState.left = left;
+    inputState.right = right;
+    inputState.jump = jump;
+
+    for (int i = 0; i < num_frames; i++) {
+        playerManager.updatePlayer(inputState);
+        update();
+    }
+
+    return getState();
+}
+
+void Game::runAgentVisualization(bool left, bool right, bool jump) {
+    SDL_Event event;
+    inputState.left = left;
+    inputState.right = right;
+    inputState.jump = jump;
+
+    playerManager.updatePlayer(inputState);
+    update();
+    render();
+    SDL_Delay(16);
 }
 
 void Game::update() {
@@ -97,11 +157,15 @@ void Game::update() {
     platformManager.updatePlatforms(camera_offset_y);
     platformManager.updatePlatformVelocity();
 
+    // scroll screen
+    camera_offset_y = playerManager.scrollCamera(camera_offset_y);
     updateScore(camera_offset_y);
-    scoreText->setText("Score: " + std::to_string(score));
 
-    if (playerManager.isGameOver(camera_offset_y)) {
-        gameOverText->setText("Game Over!");
+    if (!headless) {
+        scoreText->setText("Score: " + std::to_string(score));
+        if (playerManager.isGameOver(camera_offset_y)) {
+            gameOverText->setText("Game Over!");
+        }
     }
 }
 
@@ -109,9 +173,6 @@ void Game::update() {
 void Game::render() {
     SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
     SDL_RenderClear(renderer);
-
-    // scroll screen
-    camera_offset_y = playerManager.scrollCamera(camera_offset_y);
 
     scoreText->render();
     platformManager.render(renderer, camera_offset_y);
@@ -122,6 +183,19 @@ void Game::render() {
     }
 
     SDL_RenderPresent(renderer);
+}
+
+void Game::reset() {
+    running = true;
+    score = 0;
+    
+    // track camera movement
+    camera_offset_y = 0.0f;
+
+    playerManager.reset();
+    platformManager.reset();
+
+    //gameOverText->reset();
 }
 
 void Game::clean() {

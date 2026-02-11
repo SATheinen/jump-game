@@ -10,4 +10,6 @@ struct Player {
     bool hitGround;
 
     Player();
+
+    void reset();
 };
